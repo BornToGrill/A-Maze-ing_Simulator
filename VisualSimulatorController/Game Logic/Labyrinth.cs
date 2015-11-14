@@ -23,7 +23,7 @@ namespace VisualSimulatorController.Game_Logic {
         /// <param name="CornerBlocks">An integer defining the amount of Corner type blocks on both the board and reserves combined.</param>
         /// <param name="TSplitBlocks">An integer defining the amount of T-Split type blocks on both the board and reserves combined.</param>
         /// <param name="ReserveBlocks">An integer defining the amount of reserve blocks available. This value has a default of 5 and should be greater than 0.</param>
-        internal Labyrinth(IDataCollector sender, Player[] Players, int BoardSize, int StraightBlocks, int CornerBlocks, int TSplitBlocks, int ReserveBlocks = 5) {
+        internal Labyrinth(IDataCollector sender, Player[] Players, int BoardSize, int StraightBlocks, int CornerBlocks, int TSplitBlocks, int ReserveBlocks) {
             this.Players = Players;
             this.Phase = sender;
 
@@ -34,9 +34,6 @@ namespace VisualSimulatorController.Game_Logic {
             int TotalBlocks = BoardSize * BoardSize + ReserveBlocks - 5; // 5 = Corners + chest
 
             List<int> Blocks = new List<int>(){ StraightBlocks, CornerBlocks, TSplitBlocks };
-
-            if (Blocks.Sum() != TotalBlocks)
-                Blocks = FixBlockCount(Blocks, TotalBlocks);
 
             // Start randomizer
             RandomizeBoard(Blocks);
@@ -127,10 +124,12 @@ namespace VisualSimulatorController.Game_Logic {
                 }
                 Board[0, RowIndex] = Reserve;
             }
-            string MoveData = string.Format("{0},{1},{2}", RowIndex, ReserveIndex, Orientation);
-            if (PlayersMoved.Count > 0)
-                MoveData += "-" + string.Join(":", PlayersMoved);
-            Phase.SendMoveData("HallShifted", MoveData, dir.ToString());
+            if (Phase.IsReceivingData) {
+                string MoveData = string.Format("{0},{1},{2}", RowIndex, ReserveIndex, Orientation);
+                if (PlayersMoved.Count > 0)
+                    MoveData += "-" + string.Join(":", PlayersMoved);
+                Phase.SendMoveData("HallShifted", MoveData, dir.ToString());
+            }
         }
 
         internal void Rotate(int Xindex, int Yindex, Rotate Direction, int Count = 1, bool undo = false) {
@@ -141,14 +140,16 @@ namespace VisualSimulatorController.Game_Logic {
                 Board[Yindex, Xindex].RotateBlock(Direction, Count);
                 if (Count == 1 && !undo) {
                     Phase.IncrementMoveData("BlockRotated");
-                    Phase.SendMoveData("BlockRotated", string.Format("{0},{1}", Xindex, Yindex), Direction.ToString());
+                    if (Phase.IsReceivingData)
+                        Phase.SendMoveData("BlockRotated", string.Format("{0},{1}", Xindex, Yindex), Direction.ToString());
                 }
-                else if(Count == 2) {
+                else if (Count == 2 && Phase.IsReceivingData) {
                     Phase.RemoveLastMove();
                     Phase.SendMoveData("BlockRotated", string.Format("{0},{1}", Xindex, Yindex), Direction.ToString());
                 }
                 else if (undo) {
-                    Phase.RemoveLastMove();
+                    if (Phase.IsReceivingData)
+                        Phase.RemoveLastMove();
                     Phase.IncrementMoveData("BlockRotationUndone");
                 }
 
@@ -158,39 +159,12 @@ namespace VisualSimulatorController.Game_Logic {
  
         #region Board Creation
 
-        private List<int> FixBlockCount(List<int> Blocks, int TotalBlocks) {
-            // Fixing block count mismatch.
-
-            HandleInput.PrintColor("\n" + "Block count mismatch, automatically fixing block occurrence.", ConsoleColor.Red);
-
-            float max = TotalBlocks;
-            float[] Temp = Blocks.Select(x => (float)x).ToArray();
-
-            float total = Temp.Sum();
-
-            // Calculate percentage of block occurrence
-            for (int i = 0; i < Temp.Length; i++)
-                Temp[i] /= total;
-
-            // Set block counts to percentage of maximum
-            for (int i = 0; i < Temp.Length; i++)
-                Temp[i] *= max;
-            
-            // Calculate remainders and add it to TSplit blocks.
-            int modul = (int)Math.Round((Temp[0] % 1) + (Temp[1] % 1) + (Temp[2] % 1), MidpointRounding.AwayFromZero);
-            Temp[2] += modul;
-
-            // Round all block counts to integers
-            for (int i = 0; i < Temp.Length; i++)
-                Temp[i] = (int)Math.Floor(Temp[i]);
-
-            // Replace the original list with the fix values.
-            Blocks = Temp.Select(x => (int)x).ToList();
-            HandleInput.PrintColor(string.Format("Block count has been adjusted new count is as follows :\nStraight Blocks : {0}\nCorner Blocks : {1}\nT-Split Blocks : {2}", Blocks.Select(x => (object)x).ToArray()), ConsoleColor.Yellow);
-            return Blocks;
-        }
         private void RandomizeBoard(List<int> Blocks) {
             List<int> BlockNumbers = new List<int>() { 0, 1, 2 };
+            // Remove any indexes if 0 pieces have been selected
+            for (int i = Blocks.Count - 1; i >= 0; i--)
+                if (Blocks[i] <= 0)
+                    BlockNumbers.RemoveAt(i);
 
             for(int i = 0; i < Board.GetLength(0); i++)
                 for(int x = 0; x < Board.GetLength(1); x++) {
@@ -202,9 +176,6 @@ namespace VisualSimulatorController.Game_Logic {
                         continue;
                     }
                     int Index = GameShadow.rnd.Next(BlockNumbers.Count);
-                    if (BlockNumbers.Count == 2) {
-
-                    }
                     int Type = BlockNumbers[Index];
                     Board[i, x] = new LabyrinthBlock((BlockType)Type, GameShadow.rnd);
                     Blocks[Type]--;

@@ -6,10 +6,9 @@ using Microsoft.Xna.Framework;
 using SimulatorDelegate;
 using SimulatorDelegate.Entities;
 using VisualSimulatorController.AI_Logic;
-using VisualSimulatorController.Game_Logic;
 using VisualSimulatorController.Logging;
 
-namespace VisualSimulatorController {
+namespace VisualSimulatorController.Game_Logic {
     internal class GamePhase : IDataCollector {
 
         // Game data
@@ -76,7 +75,7 @@ namespace VisualSimulatorController {
             this.PlayerNameHistory = PlayerNames;
 
             // Setup logger and template
-            Logger = new CsvLogger(DateTime.Now.ToString("dd-MM-yy, hh`mm`ss"));
+            Logger = new CsvLogger(DateTime.Now.ToString("dd-MM-yyyy, HH;mm;ss"));
             Logger.CreateTemplate(GameData, GameRuns, VisualRuns, Chance, TurnTime, Colors, PlayerNames);
             // If visual simulation is enabled, initialize queues.
             if(VisualRuns > 0) {
@@ -86,8 +85,6 @@ namespace VisualSimulatorController {
                 PlayerHistory = DeepCopy(Colors);
                 MoveHistory = new Queue<List<Tuple<string, string, string>>>();
             }
-            // Load constants into new phase.
-            NextPhase();
         }
 
         private void NextPhase() {
@@ -109,14 +106,26 @@ namespace VisualSimulatorController {
                 }
             }
 
-            RowsShifted = 0;
-            BlocksRotated = 0;
-            PawnsMoved = 0;
-            Turns = 0;
-            RightAnswers = 0;
-            WrongAnswers = 0;
+            // Reset log variables.
+            RowsShifted = BlocksRotated = PawnsMoved = Turns = RightAnswers = WrongAnswers = 0;
         }
-        internal void RunPhase() {
+        internal void RunSimulation() {
+            while (CurrentRun < GameRuns) {
+                float perc = ((float)CurrentRun / GameRuns) * 100;
+                string Title = string.Format("A-Maze-ing simulator - Simulating - {0:#}%", perc);
+                if (Console.Title != Title)
+                    Console.Title = Title;
+                NextPhase();
+                RunPhase();
+            }
+            if(VisualRuns > 0 && !AnimationStarted && BoardHistory.Count >= VisualRuns) {
+                Coms.StartGame();
+                Coms.UpdateSimulationData(BoardHistory, ReserveHistory, MoveHistory, TurnCountHistory, PlayerHistory, PlayerNameHistory);
+                TemporaryMoves = null;
+                AnimationStarted = true;
+            }
+        }
+        private void RunPhase() {
             CurrentRun++;
 
             int CurrentPlayer = 0;
@@ -142,20 +151,6 @@ namespace VisualSimulatorController {
             if (VisualRuns > 0 && MoveHistory.Count < VisualRuns) {
                 MoveHistory.Enqueue(TemporaryMoves);
                 TurnCountHistory.Enqueue(Turns);
-            }
-
-            if (CurrentRun < GameRuns) {
-                float perc = ((float)CurrentRun / GameRuns) * 100;
-                Console.Title = string.Format("A-Maze-ing simulator - Simulating - {0:#.00}%", perc);
-                NextPhase();
-                RunPhase();
-            }
-            else {
-                Console.Title = "A-Maze-ing simulator";
-                // Convert Csv to excel
-                //Logger.SaveAs("LOGDATA");
-                //Logger.Dispose();
-                // Simulation ended.
             }
         }
 
@@ -200,8 +195,12 @@ namespace VisualSimulatorController {
         }
 
         #region IDataCollector implementation members
+
+        public bool IsReceivingData {
+            get { return (TemporaryMoves != null); }
+        }
+
         public void SendMoveData(String MoveType, String TargetObject, String MoveDirection) {
-            if(TemporaryMoves != null)
                 TemporaryMoves.Add(Tuple.Create(MoveType, TargetObject, MoveDirection));
         }
 
@@ -229,9 +228,8 @@ namespace VisualSimulatorController {
             }
         }
         public void RemoveLastMove() {
-            if(TemporaryMoves != null)
-                if (TemporaryMoves.Count > 0)
-                    TemporaryMoves.RemoveAt(TemporaryMoves.Count - 1);
+            if (TemporaryMoves.Count > 0)
+                TemporaryMoves.RemoveAt(TemporaryMoves.Count - 1);
         }
         #endregion
     }

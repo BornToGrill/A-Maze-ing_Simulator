@@ -33,7 +33,8 @@ namespace SimulatorDelegate.Entities {
         public void MovePlayer(Direction dir, bool MovedByHallway = false) {
             if (!MovedByHallway) {
                 Phase.IncrementMoveData("PawnMoved");
-                Phase.SendMoveData("PawnMoved", PlayerIndex.ToString(), dir.ToString());
+                if (Phase.IsReceivingData)
+                    Phase.SendMoveData("PawnMoved", PlayerIndex.ToString(), dir.ToString());
             }
 
             if (dir == Direction.Left)

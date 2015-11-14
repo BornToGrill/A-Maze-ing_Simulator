@@ -459,7 +459,7 @@ namespace VisualSimulatorController.AI_Logic {
             if (Distance.X > 0) {    // Rotate right adjacent.
                 if (TryRotate(sender, Direction.Right))
                     return true;
-                if (SecondBest) {
+                if (SecondBest && !Current.PlayerCanMoveOut(sender.Position + new Vector2(1,0), Direction.Left)) {
                     Current.Rotate((int)sender.Position.X + 1, (int)sender.Position.Y, Rotate.Right);
                     return true;
                 }
@@ -467,7 +467,7 @@ namespace VisualSimulatorController.AI_Logic {
             else if (Distance.X < 0) {   // Rotate left adjacent.
                 if (TryRotate(sender, Direction.Left))
                     return true;
-                if (SecondBest) {
+                if (SecondBest && !Current.PlayerCanMoveOut(sender.Position + new Vector2(-1, 0), Direction.Right)) {
                     Current.Rotate((int)sender.Position.X - 1, (int)sender.Position.Y, Rotate.Right);
                     return true;
                 }
@@ -475,7 +475,7 @@ namespace VisualSimulatorController.AI_Logic {
             if (Distance.Y > 0) {  // Rotate down adjacent.
                 if (TryRotate(sender, Direction.Down))
                     return true;
-                if (SecondBest) {
+                if (SecondBest && !Current.PlayerCanMoveOut(sender.Position + new Vector2(0, 1), Direction.Up)) {
                     Current.Rotate((int)sender.Position.X, (int)sender.Position.Y + 1, Rotate.Right);
                     return true;
                 }
@@ -483,13 +483,15 @@ namespace VisualSimulatorController.AI_Logic {
             else if (Distance.Y < 0) {   // Rotate up adjacent.
                 if (TryRotate(sender, Direction.Up))
                     return true;
-                if (SecondBest) {
+                if (SecondBest && !Current.PlayerCanMoveOut(sender.Position + new Vector2(0, -1), Direction.Down)) {
                     Current.Rotate((int)sender.Position.X, (int)sender.Position.Y - 1, Rotate.Right);
                     return true;
                 }
             }
 
             // No adjacent rotation improves the player's position. Recursive call to rotate an adjacent block anyway.
+            if (SecondBest)
+                return false;
             return RotateAdjacent(sender, Distance, true);
 
         }
@@ -607,7 +609,7 @@ namespace VisualSimulatorController.AI_Logic {
                         }
                         if (sender.Position.X != target.Position.X && // If player is not moved.
                             (ExpectedPlayerLocation(sender, dir).Y != target.Position.Y ||     // If the row the player has to move to has not been moved.
-                            Current.PlayerCanMoveOut(ExpectedPlayerLocation(sender, dir) + new Vector2(-1, 0), GetOposite(dir)))) { // If the row has been moved but the player can move anyway.
+                            Current.PlayerCanMoveOut(ExpectedPlayerLocation(sender, dir) + new Vector2(-1, 0), GetOpposite(dir)))) { // If the row has been moved but the player can move anyway.
                             Current.ShiftRow((int)target.Position.Y, Direction.Right);
                             return true;
                         }
@@ -619,7 +621,7 @@ namespace VisualSimulatorController.AI_Logic {
                         }
                         if (sender.Position.X != target.Position.X &&
                             (ExpectedPlayerLocation(sender, dir).Y != target.Position.Y ||
-                            Current.PlayerCanMoveOut(ExpectedPlayerLocation(sender, dir) + new Vector2(1, 0), GetOposite(dir)))) {
+                            Current.PlayerCanMoveOut(ExpectedPlayerLocation(sender, dir) + new Vector2(1, 0), GetOpposite(dir)))) {
                             Current.ShiftRow((int)target.Position.Y, Direction.Left);
                             return true;
                         }
@@ -633,7 +635,7 @@ namespace VisualSimulatorController.AI_Logic {
                         }
                         if (sender.Position.Y != target.Position.Y &&
                             (ExpectedPlayerLocation(sender, dir).X != target.Position.X ||
-                            Current.PlayerCanMoveOut(ExpectedPlayerLocation(sender, dir) + new Vector2(0, -1), GetOposite(dir)))) {
+                            Current.PlayerCanMoveOut(ExpectedPlayerLocation(sender, dir) + new Vector2(0, -1), GetOpposite(dir)))) {
                             Current.ShiftRow((int)target.Position.X, Direction.Down);
                             return true;
                         }
@@ -645,7 +647,7 @@ namespace VisualSimulatorController.AI_Logic {
                         }
                         if (sender.Position.Y != target.Position.Y &&
                             (ExpectedPlayerLocation(sender, dir).X != target.Position.X ||
-                            Current.PlayerCanMoveOut(ExpectedPlayerLocation(sender, dir) + new Vector2(0, 1), GetOposite(dir)))) {
+                            Current.PlayerCanMoveOut(ExpectedPlayerLocation(sender, dir) + new Vector2(0, 1), GetOpposite(dir)))) {
                             Current.ShiftRow((int)target.Position.X, Direction.Up);
                             return true;
                         }
@@ -724,7 +726,7 @@ namespace VisualSimulatorController.AI_Logic {
         private int GetTotalDistance(Vector2 target) {
             return (int)(Math.Abs(Chest.X - target.X) + Math.Abs(Chest.Y - target.Y));
         }
-        private Direction GetOposite(Direction dir) {
+        private Direction GetOpposite(Direction dir) {
             switch (dir) {
                 case Direction.Left:
                     return Direction.Right;

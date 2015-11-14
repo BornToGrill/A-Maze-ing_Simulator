@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Globalization;
 using System.Threading;
+using VisualSimulatorController.Game_Logic;
 
 namespace VisualSimulatorController {
     class CommandHandler {

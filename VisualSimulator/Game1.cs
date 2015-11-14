@@ -86,6 +86,7 @@ namespace VisualSimulator {
         /// </summary>
         protected override void Initialize() {
             // TODO: Add your initialization logic here
+            this.IsMouseVisible = true;
             graphics.SynchronizeWithVerticalRetrace = false;    // Disable V-Sync
             graphics.PreferredBackBufferWidth = 1280;
             graphics.PreferredBackBufferHeight = 720;
@@ -202,7 +203,6 @@ namespace VisualSimulator {
         /// </summary>
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Draw(GameTime gameTime) {
-            //GraphicsDevice.Clear(Color.Ivory);
             GraphicsDevice.Clear(Color.BlanchedAlmond);
             spriteBatch.Begin();
             float Offset = (float)Origin.X * Scale;
@@ -246,9 +246,15 @@ namespace VisualSimulator {
                             Position += Animations.Distance;
                 var Texture = PlayerTextures[current.PawnColor];
                 int samePosition = 0;
-                for (int x = 0; x < i; x++)
-                    if (CurrentPlayers[x].Position == current.Position)
-                        samePosition++;
+                if (Animations.AnimationTarget == "Block+Player" || !Animations.AnimatedPlayers.Contains(i))
+                    for (int x = 0; x < i; x++)
+                        if (CurrentPlayers[x].Position == current.Position) {
+                            if (Animations.AnimationTarget != "Player")
+                                samePosition++;
+                            else if (!Animations.AnimatedPlayers.Contains(x))
+                                samePosition++;
+                        }
+                        
 
 
                 switch (samePosition) {
@@ -262,7 +268,7 @@ namespace VisualSimulator {
                         spriteBatch.Draw(Texture, Position, new Rectangle(0, 0, Texture.Width / 2, Texture.Height / 2), Color.White, 0, PlayerOrigin, Scale, SpriteEffects.None, 0);
                         break;
                     case 3:
-                        spriteBatch.Draw(Texture, Position, new Rectangle(Texture.Width / 2, 0, Texture.Width / 2, Texture.Height / 2), Color.White, 0, PlayerOrigin, Scale, SpriteEffects.None, 0);
+                        spriteBatch.Draw(Texture, Position + new Vector2(Texture.Width / 2, Texture.Height / 2), new Rectangle(Texture.Width / 2, Texture.Width / 2, Texture.Width / 2, Texture.Height / 2), Color.White, 0, PlayerOrigin, Scale, SpriteEffects.None, 0);
                         break;
                 }
             }
