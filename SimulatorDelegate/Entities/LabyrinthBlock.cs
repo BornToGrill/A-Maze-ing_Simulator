@@ -22,10 +22,6 @@ namespace SimulatorDelegate.Entities {
             this.Type = Type;
             this.Orientation = Orientation;
         }
-        public LabyrinthBlock(BlockType Type, Random rnd) {
-            this.Type = Type;
-            this.Orientation = rnd.Next(0, 4);
-        }
         public void RotateBlock(Rotate rotate, int count = 1) {
             switch (rotate) {
                 case Rotate.Left:

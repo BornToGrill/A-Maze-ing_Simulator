@@ -50,14 +50,14 @@ namespace VisualSimulatorController.Game_Logic {
                 PlayerNames[i] = HandleInput.ReadLine<string>((x => char.IsLetter(x)), string.Format("What is the player's name (default 'Player {0}') : ", i + 1),
                     (c => c.Length > 0 && c.Length <= 12), "Player name length should be between 1 and 12 characters.", true, true, "Player " + (i + 1));
                 PlayerColorNames[i] = HandleInput.ReadLine<string>((x => char.IsLetter(x)), string.Format("What should the player's colour be (default '{0}') ? : ", Defaults[i]),
-                    (c => ConvertColor(c) != null), "An invalid color value has been giving.", false, true, Defaults[i]);
-                PlayerColors[i] = (Color)ConvertColor(PlayerColorNames[i]);
+                    (c => GlobalMethods.GetColor(c) != null), "An invalid color value has been giving.", false, true, Defaults[i]);
+                PlayerColors[i] = (Color)GlobalMethods.GetColor(PlayerColorNames[i]);
             }
             return Tuple.Create(PlayerColors, PlayerColorNames, PlayerNames);
         }
         public static int[] CreateSimulationData() {
-            int Runs = HandleInput.ReadLine<int>((x => char.IsDigit(x)), "How many game should be run in the simulation (default '500') : ",
-                (c => c > 0), "Atleast 1 simulation should be run.", true, true, 500);
+            int Runs = HandleInput.ReadLine<int>((x => char.IsDigit(x)), "How many game should be run in the simulation (default '50.000') : ",
+                (c => c > 0), "Atleast 1 simulation should be run.", true, true, 50000);
             HandleInput.PrintColor(string.Format("The simulator will run '{0}' simulations.", Runs), ConsoleColor.Yellow);
             int VisualRun = HandleInput.ReadLine<int>((x => char.IsDigit(x)), "How many games should be visualized ? : ",
                 (c => c <= Runs), "There can't be more visual simulations than actual simulations.", true);
@@ -72,10 +72,6 @@ namespace VisualSimulatorController.Game_Logic {
         }
 
         #region Data Validation and converters
-        private static Color? ConvertColor(string ColorName) {
-            var conv = typeof(Color).GetProperty(ColorName);
-            return (conv == null) ? null : (Color?)conv.GetValue(null, null);
-        }
 
         private static int[] FixBlockCount(int[] Blocks, int TotalBlocks) {
             // Fixing block count mismatch.

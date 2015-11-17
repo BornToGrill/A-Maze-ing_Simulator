@@ -81,13 +81,18 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AI Logic\StateController.cs" />
-    <Compile Include="CommandHandler.cs" />
+    <Compile Include="Game Logic\CommandHandler.cs" />
     <Compile Include="Game Logic\Commands.cs" />
     <Compile Include="Game Logic\GameCreation.cs" />
+    <Compile Include="Game Logic\Helpers\GameData.cs" />
+    <Compile Include="Game Logic\Helpers\GamePhase.cs" />
+    <Compile Include="Game Logic\Helpers\IGameDataCollector.cs" />
     <Compile Include="Game Logic\Labyrinth.cs" />
-    <Compile Include="Game Logic\GamePhase.cs" />
+    <Compile Include="Game Logic\PhaseController.cs" />
+    <Compile Include="GlobalMethods.cs" />
     <Compile Include="HandleInput.cs" />
     <Compile Include="GameShadow.cs" />
+    <Compile Include="Logging\Helpers\AsyncLoggerBase.cs" />
     <Compile Include="Logging\CsvLogger.cs" />
     <Compile Include="Logging\ExcelConverter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

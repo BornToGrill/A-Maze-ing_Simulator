@@ -1,27 +1,62 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
-using OfficeOpenXml;
+using VisualSimulatorController.Logging.Helpers;
+using VisualSimulatorController.Game_Logic.Helpers;
 
 namespace VisualSimulatorController.Logging {
-    class CsvLogger {
-        private Queue<string> LogQueue = new Queue<string>();
-        private string CsvPath;
-        private string ExcelPath;
-        private bool IsWriting;
+    internal class CsvLogger : AsyncLoggerBase {
 
-        private int ExpectedGames;
-        private int GameNumber = 0;
+        string CsvPath;
+        string ExcelPath;
+        
+        int ExpectedGames;
+        int GameNumber = 1;
+        int TurnTime;
+
+        ManualResetEvent DoneEvent;
 
 
         public CsvLogger(string Path) {
             this.CsvPath = "Game Logs\\" + Path + "\\CSV-Log.csv";
             this.ExcelPath = "Game Logs\\" + Path + "\\Excel-Log.xlsx";
         }
-        public void CreateTemplate(int[] GameData, int Runs, int VisualRuns, int Chance, int TurnTime, string[] PlayerColors, string[] PlayerNames) {
+
+        private string IndexToCornerString(int index) {
+            switch (index) {
+                case 0: return "Top Left";
+                case 1: return "Top Right";
+                case 2: return "Bottom Right";
+                case 3: return "Bottom Left";
+                default:
+                    throw new ArgumentOutOfRangeException("There can't be more than 4 players!");
+            }
+        }
+
+        #region AsnyLoggerBase implementation members
+        internal override void AsyncLogData(GameData Data) {
+            using (var writer = new StreamWriter(CsvPath, true)) {  // Appending
+                float AnswerPercentage = (Data.RightAnswers / (float)(Data.WrongAnswers + Data.RightAnswers)) * 100;
+                string Log = string.Format("{0};{1};{2};{3};{4};{5};{6}", GameNumber++, Data.Turns, Data.RowsShifted, Data.BlocksRotated, Data.PawnsMoved, Data.Turns * TurnTime, AnswerPercentage);
+                writer.WriteLine(Log);
+            }
+            if (IsMainProcess) {
+                float perc = ((float)GameNumber / ExpectedGames) * 100;
+                string Title = string.Format("A-Maze-ing simulator - Logging - {0:#}%", perc);
+                if (Console.Title != Title)
+                    Console.Title = Title;
+            }
+            if(GameNumber > ExpectedGames) {
+                HandleInput.PrintColor("CSV Logger finished writing a log file.", ConsoleColor.Green);
+                ExcelConverter.Convert(CsvPath, ExcelPath, GameNumber + 19, DoneEvent);
+                base.Dispose();
+            }
+        }
+        internal override void CreateTemplate(int[] GameData, int Runs, int VisualRuns, int Chance, int TurnTime, string[] PlayerColors, string[] PlayerNames, ManualResetEvent Done) {
             this.ExpectedGames = Runs;
+            this.TurnTime = TurnTime;
+            this.DoneEvent = Done;
             if (!Directory.Exists(Path.GetDirectoryName(CsvPath)))
                 Directory.CreateDirectory(Path.GetDirectoryName(CsvPath));
             using (StreamWriter writer = new StreamWriter(CsvPath)) {
@@ -54,49 +89,7 @@ namespace VisualSimulatorController.Logging {
             }
 
         }
-        public void LogGameData(int Turns, int Shifted, int Rotated, int Moved, int TurnTime, int Chance) {
-            lock (LogQueue) {
-                LogQueue.Enqueue(string.Format("{0};{1};{2};{3};{4};{5};{6}", ++GameNumber, Turns, Shifted, Rotated, Moved, TurnTime * Turns, Chance));
-            }
-            if (!IsWriting)
-                WriteData();
-        }
-
-        public void WriteData() {
-            if (IsWriting)
-                return;
-
-            IsWriting = true;
-            Thread thrd = new Thread(new ThreadStart( delegate {
-                using (var writer = new StreamWriter(CsvPath, true)) {  // Appending
-                    lock (LogQueue) {
-                        while (LogQueue.Count > 0) {
-                            writer.WriteLine(LogQueue.Peek());
-                            LogQueue.Dequeue();
-                        }
-                    }
-                }
-
-                IsWriting = false;
-                lock (LogQueue) {
-                    if (GameNumber >= ExpectedGames && LogQueue.Count == 0)
-                        ExcelConverter.Convert(CsvPath, ExcelPath, GameNumber + 19);
-                    else if (!IsWriting && LogQueue.Count > 0)
-                        WriteData();
-                }
-            }));
-            thrd.Start();
-        }
-
-        private string IndexToCornerString(int index) {
-            switch (index) {
-                case 0: return "Top Left";
-                case 1: return "Top Right";
-                case 2: return "Bottom Right";
-                case 3: return "Bottom Left";
-                default:
-                    throw new ArgumentOutOfRangeException("There can't be more than 4 players!");
-            }
-        }
+        #endregion
     }
 }
+

@@ -15,6 +15,7 @@ namespace VisualSimulator {
     public class Game1 : Game {
         private GraphicsDeviceManager graphics;
         private SpriteBatch spriteBatch;
+        private Color Background;
 
         private bool _pause = false;
         internal IRelayCommand MainProcess;
@@ -91,6 +92,7 @@ namespace VisualSimulator {
             graphics.PreferredBackBufferWidth = 1280;
             graphics.PreferredBackBufferHeight = 720;
             graphics.ApplyChanges();
+            Background = Color.BlanchedAlmond;
 
 
             base.Initialize();
@@ -203,7 +205,7 @@ namespace VisualSimulator {
         /// </summary>
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Draw(GameTime gameTime) {
-            GraphicsDevice.Clear(Color.BlanchedAlmond);
+            GraphicsDevice.Clear(Background);
             spriteBatch.Begin();
             float Offset = (float)Origin.X * Scale;
 
@@ -342,6 +344,9 @@ namespace VisualSimulator {
         public void SkipSimulation() {
             Animations.AnimationDone();
             GameIsRunning = false;
+        }
+        public void ChangeBackground(Color Background) {
+            this.Background = Background;
         }
 
         #endregion

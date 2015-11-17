@@ -41,7 +41,7 @@ namespace VisualSimulatorController.Game_Logic {
 
         #region Block Manipulation
         internal void ShiftRow(int RowIndex, Direction dir) {
-            ShiftRow(RowIndex, dir, GameShadow.rnd.Next(0, Reserves.Length), GameShadow.rnd.Next(0, 4));
+            ShiftRow(RowIndex, dir, GlobalMethods.NextRandom(0, Reserves.Length), GlobalMethods.NextRandom(0, 4));
         }
         internal void ShiftRow(int RowIndex, Direction dir, int ReserveIndex, int Orientation) {
             Phase.IncrementMoveData("HallShifted");
@@ -175,9 +175,9 @@ namespace VisualSimulatorController.Game_Logic {
                             Board[i, x] = null;
                         continue;
                     }
-                    int Index = GameShadow.rnd.Next(BlockNumbers.Count);
+                    int Index = GlobalMethods.NextRandom(BlockNumbers.Count);
                     int Type = BlockNumbers[Index];
-                    Board[i, x] = new LabyrinthBlock((BlockType)Type, GameShadow.rnd);
+                    Board[i, x] = new LabyrinthBlock((BlockType)Type, GlobalMethods.NextRandom(0,4));
                     Blocks[Type]--;
                     if (Blocks[Type] <= 0)
                         BlockNumbers.RemoveAt(Index);

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Drawing;
 using System.IO;
+using System.Threading;
 using OfficeOpenXml;
 
 namespace VisualSimulatorController.Logging {
@@ -8,7 +9,7 @@ namespace VisualSimulatorController.Logging {
 
 
         
-        internal static void Convert(string CsvPath, string ExcelPath, int FileLength) {
+        internal static void Convert(string CsvPath, string ExcelPath, int FileLength, ManualResetEvent DoneEvent) {
             Console.Title = "A-Maze-ing simulator - Converting";
             //try {
             string SheetName = "Simulator Results";
@@ -60,6 +61,8 @@ namespace VisualSimulatorController.Logging {
             //finally {
             //    File.SetAttributes(CsvPath, FileAttributes.Normal); // UNSAFE , not sure if this will cause an exception
             Console.Title = "A-Maze-ing simulator";
+            DoneEvent.Set();
+            HandleInput.PrintColor("Excel converter finished styling the CSV Sheet.", ConsoleColor.Green);
             //    // Try to unhide file.
             //}
         }
@@ -106,6 +109,7 @@ namespace VisualSimulatorController.Logging {
             Sheet.Cells[VariableDataAddress].Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
             Sheet.Cells[VariableDataAddress].Style.Fill.BackgroundColor.SetColor(Color.FromArgb(237, 125, 49));
             Sheet.Cells[VariableDataAddress].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
+            Sheet.Cells[VariableDataAddress].Style.Numberformat.Format = "0";
 
             // Set average formula calculations.
             Sheet.Cells["A7"].Value = Sheet.Cells["A4"].Value;

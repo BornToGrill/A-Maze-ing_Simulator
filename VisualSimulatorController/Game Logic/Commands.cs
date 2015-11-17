@@ -2,6 +2,7 @@
 using System.Threading;
 using VisualSimulator;
 using SimulatorDelegate;
+using Microsoft.Xna.Framework;
 
 namespace VisualSimulatorController.Game_Logic {
 
@@ -16,12 +17,15 @@ namespace VisualSimulatorController.Game_Logic {
                         using (Game = new Game1(this))
                             Game.Run();
                     }));
+            thread.Priority = ThreadPriority.Highest;
             thread.Start();
             while (!GameRunning) {
                 Thread.Sleep(250);
             }
             CommandHandler Handler = new CommandHandler(this);
             Handler.WaitForCommand();
+            HandleInput.PrintColor("The visual simulation has begun. The simulator can be controlled using console commands.", ConsoleColor.Green);
+            Handler.ForceOutputCommand("?");
         }
 
 
@@ -53,6 +57,9 @@ namespace VisualSimulatorController.Game_Logic {
         }
         public void UnPause() {
             Game.UnPause();
+        }
+        public void ChangeBackground(Color Background) {
+            Game.ChangeBackground(Background);
         }
         #endregion
 

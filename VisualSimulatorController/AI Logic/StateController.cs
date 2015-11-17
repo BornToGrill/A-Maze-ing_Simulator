@@ -6,15 +6,13 @@ using SimulatorDelegate;
 using SimulatorDelegate.Entities;
 using VisualSimulatorController.Game_Logic;
 
-using System.Diagnostics;
-
 namespace VisualSimulatorController.AI_Logic {
     internal class StateController {
 
 
         private Labyrinth Current;
         private Vector2 Chest;
-        private GamePhase Phase;
+        private IDataCollector Phase;
 
         /// <summary>
         /// Array of players excluding the player who executed the method.
@@ -25,7 +23,7 @@ namespace VisualSimulatorController.AI_Logic {
 
         private int Chance;
 
-        internal StateController(GamePhase sender, int Chance, Labyrinth GameState, Player[] Players) {
+        internal StateController(IDataCollector sender, int Chance, Labyrinth GameState, Player[] Players) {
             this.Phase = sender;
             this.Chance = Chance;
             this.Current = GameState;
@@ -39,10 +37,7 @@ namespace VisualSimulatorController.AI_Logic {
         /// <returns>Returns true if the player calling the method has won.</returns>
         internal bool ExecuteNextMove(Player sender) {
             bool Answer = AnswerQuestion();
-            if (Answer)
-                Phase.RightAnswers++;
-            else
-                Phase.WrongAnswers++;
+            Phase.IncrementAnswer(Answer);
             
             CalculateMove(sender, Answer);
 
@@ -54,7 +49,7 @@ namespace VisualSimulatorController.AI_Logic {
         }
 
         private bool AnswerQuestion() {
-            return (GameShadow.rnd.Next(0, 100) <= Chance);
+            return (GlobalMethods.NextRandom(0, 100) <= Chance);
         }
 
         #region AI Moves
@@ -268,7 +263,8 @@ namespace VisualSimulatorController.AI_Logic {
 
             if (SecondBest) {
                 // Worst possible move. Only obstruct other player.
-                ExecuteCounter(sender);
+                if (!RotateAdjacent(sender, Distance))
+                    ExecuteCounter(sender);
                 return;
                 // Later implementation ? :
                 // Annoy other player if you can move.
@@ -433,12 +429,14 @@ namespace VisualSimulatorController.AI_Logic {
                 if (Distance.Y > 0) {   // Needs to move down.
                     if (TryRotate(sender, Direction.Down))
                         return true;
-                    Current.Rotate((int)sender.Position.X, (int)sender.Position.Y + 1, Rotate.Right);
+                    else if (!Current.PlayerCanMoveOut(sender.Position + new Vector2(0, 1), Direction.Up))
+                        Current.Rotate((int)sender.Position.X, (int)sender.Position.Y + 1, Rotate.Right);
                 }
                 else {  // Needs to move up.
                     if (TryRotate(sender, Direction.Up))
                         return true;
-                    Current.Rotate((int)sender.Position.X, (int)sender.Position.Y - 1, Rotate.Right);
+                    else if(!Current.PlayerCanMoveOut(sender.Position + new Vector2(0, -1), Direction.Down))
+                        Current.Rotate((int)sender.Position.X, (int)sender.Position.Y - 1, Rotate.Right);
                 }
                 return false;   // Rotated adjacent but still can't move.
             }
@@ -446,12 +444,14 @@ namespace VisualSimulatorController.AI_Logic {
                 if (Distance.X > 0) {    // Needs to move right.
                     if (TryRotate(sender, Direction.Right))
                         return true;
-                    Current.Rotate((int)sender.Position.X + 1, (int)sender.Position.Y, Rotate.Right);
+                    else if (!Current.PlayerCanMoveOut(sender.Position + new Vector2(1, 0), Direction.Left))
+                        Current.Rotate((int)sender.Position.X + 1, (int)sender.Position.Y, Rotate.Right);
                 }
                 else {  // Needs to move left.
                     if (TryRotate(sender, Direction.Left))
                         return true;
-                    Current.Rotate((int)sender.Position.X - 1, (int)sender.Position.Y, Rotate.Right);
+                    else if (!Current.PlayerCanMoveOut(sender.Position + new Vector2(-1, 0), Direction.Right))
+                        Current.Rotate((int)sender.Position.X - 1, (int)sender.Position.Y, Rotate.Right);
                 }
                 return false;   // rotated adjacent but still can't move.
             }
