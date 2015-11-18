@@ -83,41 +83,53 @@ namespace VisualSimulatorController.Logging {
             this.DoneEvent = Done;
             if (!Directory.Exists(Path.GetDirectoryName(CsvPath)))
                 Directory.CreateDirectory(Path.GetDirectoryName(CsvPath));
-            using (StreamWriter writer = new StreamWriter(CsvPath)) {
-                // Setting file to hidden to avoid any access violations.
-                // File will be unhidden when converted to Excel.
-                File.SetAttributes(CsvPath, File.GetAttributes(CsvPath) | FileAttributes.Hidden);
+            try {
+                using (StreamWriter writer = new StreamWriter(CsvPath)) {
+                    // Setting file to hidden to avoid any access violations.
+                    // File will be unhidden when converted to Excel.
+                    File.SetAttributes(CsvPath, File.GetAttributes(CsvPath) | FileAttributes.Hidden);
 
-                writer.WriteLine("sep=;");
-                writer.WriteLine("Simulation constants");
-                writer.WriteLine("Simulation data");
-                writer.WriteLine("Simulation runs;;Visual simulations;;Correct answer %;;Average turn time");
-                writer.WriteLine(string.Format("{0};;{1};;;;{2}", Runs, VisualRuns, TurnTime));
-                writer.WriteLine("Simulation results");
-                writer.WriteLine("Simulation runs;;Average turns;;Correct answer %;;Average game time;Best Player");
-                writer.WriteLine();
-                writer.WriteLine("Game board data");
-                writer.WriteLine("Dimensions;;Straight;Corner;T-Split;Reserves;Total blocks");
-                writer.WriteLine(string.Format("{0}x{0};;{1};{2}", GameData[0], string.Join(";", GameData.Select(c => c.ToString()).ToArray(), 1, GameData.Length - 1), GameData.Sum() - GameData[0]));
-                writer.WriteLine("Player data");
-                writer.WriteLine("#;Name;Color;Start;Chance %;Actual chance;Wins;Win %");
-                for (int i = 0; i < 4; i++)
-                    if (i < PlayerNames.Length)
-                        writer.WriteLine(string.Format("{0};{1};{2};{3};{4}", i + 1, PlayerNames[i], PlayerColors[i], IndexToCornerString(i), PlayerChances[i]));
-                    else
-                        writer.WriteLine();
+                    writer.WriteLine("sep=;");
+                    writer.WriteLine("Simulation constants");
+                    writer.WriteLine("Simulation data");
+                    writer.WriteLine("Simulation runs;;Visual simulations;;Correct answer %;;Average turn time");
+                    writer.WriteLine(string.Format("{0};;{1};;;;{2}", Runs, VisualRuns, TurnTime));
+                    writer.WriteLine("Simulation results");
+                    writer.WriteLine("Simulation runs;;Average turns;;Correct answer %;;Average game time;Best Player");
+                    writer.WriteLine();
+                    writer.WriteLine("Game board data");
+                    writer.WriteLine("Dimensions;;Straight;Corner;T-Split;Reserves;Total blocks");
+                    writer.WriteLine(string.Format("{0}x{0};;{1};{2}", GameData[0], string.Join(";", GameData.Select(c => c.ToString()).ToArray(), 1, GameData.Length - 1), GameData.Sum() - GameData[0]));
+                    writer.WriteLine("Player data");
+                    writer.WriteLine("#;Name;Color;Start;Chance %;Actual chance;Wins;Win %");
+                    for (int i = 0; i < 4; i++)
+                        if (i < PlayerNames.Length)
+                            writer.WriteLine(string.Format("{0};{1};{2};{3};{4}", i + 1, PlayerNames[i], PlayerColors[i], IndexToCornerString(i), PlayerChances[i]));
+                        else
+                            writer.WriteLine();
 
-                writer.WriteLine();
-                writer.WriteLine("Game results");
-                writer.WriteLine("Game;Turns;Rows shifted;Blocks rotated;Pawns moved;Game time;Correct %;Winner");
+                    writer.WriteLine();
+                    writer.WriteLine("Game results");
+                    writer.WriteLine("Game;Turns;Rows shifted;Blocks rotated;Pawns moved;Game time;Correct %;Winner");
+                }
             }
-            using (StreamWriter writer = new StreamWriter(CsvPlayersPath)) {
-                File.SetAttributes(CsvPlayersPath, File.GetAttributes(CsvPlayersPath) | FileAttributes.Hidden);
-                writer.WriteLine("sep=;");
-                writer.Write("Game");
-                for (int i = 0; i < PlayerNames.Length; i++)
-                    writer.Write(";" + PlayerNames[i]);
-                writer.WriteLine();
+            catch {
+                // Unhide created file.
+                File.SetAttributes(CsvPath, FileAttributes.Normal);
+                throw;
+            }
+            try {
+                using (StreamWriter writer = new StreamWriter(CsvPlayersPath)) {
+                    File.SetAttributes(CsvPlayersPath, File.GetAttributes(CsvPlayersPath) | FileAttributes.Hidden);
+                    writer.WriteLine("sep=;");
+                    writer.Write("Game");
+                    for (int i = 0; i < PlayerNames.Length; i++)
+                        writer.Write(";" + PlayerNames[i]);
+                    writer.WriteLine();
+                }
+            }
+            catch {
+                File.SetAttributes(CsvPlayersPath, FileAttributes.Normal);
             }
             // Create the streamwriter instance that will be appending log data.
             GameDataWriter = new StreamWriter(CsvPath, true);
