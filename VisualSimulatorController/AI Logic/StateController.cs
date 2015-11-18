@@ -21,11 +21,8 @@ namespace VisualSimulatorController.AI_Logic {
         /// </summary>
         private Player[] Players;
 
-        private int Chance;
-
-        internal StateController(IDataCollector sender, int Chance, Labyrinth GameState, Player[] Players) {
+        internal StateController(IDataCollector sender, Labyrinth GameState, Player[] Players) {
             this.Phase = sender;
-            this.Chance = Chance;
             this.Current = GameState;
             this.Players = Players;
             this.Chest = new Vector2((int)GameState.Board.GetLength(1) / 2, (int)GameState.Board.GetLength(0) / 2);
@@ -35,8 +32,8 @@ namespace VisualSimulatorController.AI_Logic {
         /// If the player won the game a true value is returned.
         /// </summary>
         /// <returns>Returns true if the player calling the method has won.</returns>
-        internal bool ExecuteNextMove(Player sender) {
-            bool Answer = AnswerQuestion();
+        internal bool ExecuteNextMove(Player sender, int Chance) {
+            bool Answer = AnswerQuestion(Chance);
             Phase.IncrementAnswer(Answer);
             
             CalculateMove(sender, Answer);
@@ -48,7 +45,7 @@ namespace VisualSimulatorController.AI_Logic {
             // Call next player.
         }
 
-        private bool AnswerQuestion() {
+        private bool AnswerQuestion(int Chance) {
             return (GlobalMethods.NextRandom(0, 100) <= Chance);
         }
 

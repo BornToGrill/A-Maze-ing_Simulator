@@ -12,13 +12,15 @@
 
         private StateController AIController;
         private IGameDataCollector Main;
+        private int TimeOut;
 
         // Regular game results
         private Player[] Players;
         private Labyrinth GameBoard;
-        private int Chance;
         private bool VisualSim;
         private GameData Data;
+        private int CurrentPlayer;
+        private int[] PlayerChances;
 
         // Visual simulator results
         private LabyrinthBlock[,] OriginalBoard;
@@ -26,14 +28,16 @@
         private List<Tuple<string, string, string>> Moves;
 
 
-        internal GamePhase(IGameDataCollector sender, int[] GameData, Color[] PlayerData, int Chance, bool VisualSim) {
-            this.Chance = Chance;
+
+        internal GamePhase(IGameDataCollector sender, int[] GameData, Color[] PlayerData, int[] PlayerChances, bool VisualSim, int TimeOut) {
+            this.PlayerChances = PlayerChances;
             this.VisualSim = VisualSim;
+            this.TimeOut = TimeOut;
             this.Main = sender;
             this.Players = GetPlayers(PlayerData, GameData[0]);
             this.GameBoard = new Labyrinth(this, this.Players, GameData[0], GameData[1], GameData[2], GameData[3], GameData[4]);
-            AIController = new StateController(this, Chance, GameBoard, Players);
-            Data = new GameData();
+            AIController = new StateController(this, GameBoard, Players);
+            Data = new GameData(Players.Length);
 
             if (VisualSim) {
                 OriginalBoard = GameBoard.Board.DeepCopy();
@@ -43,9 +47,17 @@
         }
 
         internal void RunSimulation() {
-            int CurrentPlayer = 0;
-            while (!AIController.ExecuteNextMove(Players[CurrentPlayer])) {
+            CurrentPlayer = 0;
+            while (!AIController.ExecuteNextMove(Players[CurrentPlayer], PlayerChances[CurrentPlayer])) {
                 Data.Turns++;
+
+                if(TimeOut != 0 && Data.Turns >= TimeOut) {
+                    if (VisualSim)
+                        Main.AddGameHistoryData(Data.Turns, OriginalBoard, OriginalReserves, Moves);
+                    Main.AddGameLogData(null, 0);
+                    return;
+                }
+
 
                 if (VisualSim)
                     Moves.Add(null);    // Null indicates end of turn.
@@ -56,7 +68,7 @@
             }
             if (VisualSim)
                 Main.AddGameHistoryData(Data.Turns, OriginalBoard, OriginalReserves, Moves);
-            Main.AddGameLogData(Data);
+            Main.AddGameLogData(Data, CurrentPlayer);
 
         }
 
@@ -98,12 +110,6 @@
                 case "PawnMoved":
                     Data.PawnsMoved++;
                     break;
-                case "CorrectAnswer":
-                    Data.RightAnswers++;
-                    break;
-                case "IncorrectAnswer":
-                    Data.WrongAnswers++;
-                    break;
                 case "HallShifted":
                     Data.RowsShifted++;
                     break;
@@ -128,9 +134,9 @@
 
         public void IncrementAnswer(Boolean Correct) {
             if (Correct)
-                Data.RightAnswers++;
+                Data.RightAnswers[CurrentPlayer]++;
             else
-                Data.WrongAnswers++;
+                Data.WrongAnswers[CurrentPlayer]++;
         }
     }
     namespace PrivateExtensions {

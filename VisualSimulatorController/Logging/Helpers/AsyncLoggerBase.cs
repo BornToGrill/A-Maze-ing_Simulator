@@ -23,9 +23,9 @@ namespace VisualSimulatorController.Logging.Helpers {
             LogThread.Start();
         }
 
-        internal void LogData(GameData Data) {
+        internal void LogData(GameData Data, string WinnerName) {
             lock (LogQueue) {
-                LogQueue.Enqueue(() => AsyncLogData(Data));
+                LogQueue.Enqueue(() => AsyncLogData(Data, WinnerName));
             }
             NewItems.Set();
         }
@@ -34,7 +34,7 @@ namespace VisualSimulatorController.Logging.Helpers {
         /// Method used to send log data to the background logger. The data will be written to the specified file asynchronously.
         /// </summary>
         /// <param name="Data">The GameData object with all logging data to be written to the log file.</param>
-        internal abstract void AsyncLogData(GameData Data);
+        internal abstract void AsyncLogData(GameData Data, string WinnerName);
         /// <summary>
         /// Method used to create a template
         /// </summary>
@@ -46,7 +46,7 @@ namespace VisualSimulatorController.Logging.Helpers {
         /// <param name="PlayerColors"></param>
         /// <param name="PlayerNames"></param>
         /// <param name="Done"></param>
-        internal abstract void CreateTemplate(int[] GameData, int Runs, int VisualRuns, int Chance, int TurnTime, string[] PlayerColors, string[] PlayerNames, ManualResetEvent Done);
+        internal abstract void CreateTemplate(int[] GameData, int Runs, int VisualRuns, int TurnTime, string[] PlayerColors, string[] PlayerNames, int[] PlayerChances, ManualResetEvent Done);
 
         void ProcessQueue() {
             while (true) {

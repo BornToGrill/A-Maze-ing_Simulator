@@ -23,8 +23,8 @@ namespace VisualSimulatorController {
             var SimulationData = GameCreation.CreateSimulationData();
             
             // Create a simulation phase
-            var Phase = new PhaseController(Coms, BoardData[0], BoardData[1], BoardData[2], BoardData[3], BoardData[4], PlayerData.Item1, PlayerData.Item2, PlayerData.Item3, 
-                SimulationData[2], SimulationData[0], SimulationData[1], SimulationData[3]);
+            var Phase = new PhaseController(Coms, BoardData, PlayerData.Item1, PlayerData.Item2, PlayerData.Item3, PlayerData.Item4,
+                SimulationData[0], SimulationData[1], SimulationData[2], SimulationData[3]);
 
             // Run simulation
             Phase.RunSimulation();

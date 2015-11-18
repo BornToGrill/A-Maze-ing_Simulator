@@ -15,10 +15,11 @@ namespace VisualSimulatorController.Game_Logic {
         // Game constants
         readonly int[] GameData;
         readonly Color[] PlayerData;
-        readonly int Chance;
+        readonly int[] PlayerChances;
         readonly int GameRuns;
         readonly int VisualRuns;
         readonly int TurnTime;
+        readonly int TimeOut;
 
         // Logger
         AsyncLoggerBase Logger;
@@ -39,7 +40,6 @@ namespace VisualSimulatorController.Game_Logic {
         // TargetObject ( Player #, Row index, Block index )
         // Move direction ( Direction, Direction, Rotation )
         Queue<List<Tuple<string, string, string>>> MoveHistory;
-
         /// <summary>
         /// Initializes a new game phase. The phase contains controls the simulation and subsequently logs the data gathered.
         /// </summary>
@@ -52,21 +52,23 @@ namespace VisualSimulatorController.Game_Logic {
         /// <param name="Chance">Percentage chance that a player will answer the question correctly.</param>
         /// <param name="Runs">Amount of games the simulator will run.</param>
         /// <param name="TurnTime">The amount of time a turn would take given in seconds.</param>
-        internal PhaseController(Commands coms, int BoardSize, int Straight, int Corner, int TSplit, int Reserves, Color[] PlayerColors, string[] Colors, string[] PlayerNames, int Chance, int Runs, int VisualRuns, int TurnTime) {
+        internal PhaseController(Commands coms, int[] BoardData, Color[] PlayerColors, string[] Colors, string[] PlayerNames, int[] PlayerChances, int Runs, int VisualRuns, int TurnTime, int TimeOut ) {
             // Set all constants
             DoneSimulating = new ManualResetEvent(false);
-            this.GameData = new[] { BoardSize, Straight, Corner, TSplit, Reserves };
+
+            this.GameData = BoardData;
             this.PlayerData = PlayerColors;
-            this.Chance = Chance;
+            this.PlayerChances = PlayerChances;
             this.GameRuns = Runs;
             this.VisualRuns = VisualRuns;
             this.TurnTime = TurnTime;
             this.Coms = coms;
             this.PlayerNameHistory = PlayerNames;
+            this.TimeOut = TimeOut;
 
             // Setup logger and template
             Logger = new CsvLogger(DateTime.Now.ToString("dd-MM-yyyy, HH;mm;ss"));
-            Logger.CreateTemplate(GameData, GameRuns, VisualRuns, Chance, TurnTime, Colors, PlayerNames, DoneSimulating);
+            Logger.CreateTemplate(BoardData, GameRuns, VisualRuns, TurnTime, Colors, PlayerNames,PlayerChances, DoneSimulating);
             // If visual simulation is enabled, initialize queues.
             if(VisualRuns > 0) {
                 TurnCountHistory = new Queue<int>();
@@ -88,12 +90,12 @@ namespace VisualSimulatorController.Game_Logic {
 
         private void VisualSim(int obj) {
             CurrentSimulation++;
-            var Phase = new GamePhase(this, GameData, PlayerData, Chance, true);
+            var Phase = new GamePhase(this, GameData, PlayerData, PlayerChances, true, TimeOut);
             Phase.RunSimulation();
         }
         private void StartSim(int obj) {
             CurrentSimulation++;
-            var Phase = new GamePhase(this, GameData, PlayerData, Chance, false);
+            var Phase = new GamePhase(this, GameData, PlayerData, PlayerChances, false, TimeOut);
             Phase.RunSimulation();
         }
 
@@ -115,8 +117,9 @@ namespace VisualSimulatorController.Game_Logic {
                         }
         }
 
-        public void AddGameLogData(GameData Data) {
-            Logger.LogData(Data);
+        public void AddGameLogData(GameData Data, int WinnerIndex) {
+            Logger.LogData(Data, PlayerNameHistory[WinnerIndex]);
+
             float perc = 0;
             perc = ((float)CurrentSimulation/ GameRuns) * 100;
             string Title = string.Format("A-Maze-ing simulator - Simulating - {0:0.0}%", perc);

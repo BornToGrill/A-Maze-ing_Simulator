@@ -1,9 +1,13 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
 namespace VisualSimulatorController {
     public static class HandleInput {
+
+        private static bool Waiting;
+        private static Queue<Tuple<string, ConsoleColor>> PrintQueue = new Queue<Tuple<string, ConsoleColor>>();
 
         #region Single key Input
         public static bool ExpectKey(ConsoleKey key, string message, int timeout = -1) {
@@ -28,6 +32,7 @@ namespace VisualSimulatorController {
 
         #region Line Input
         public static T ReadLine<T>(Predicate<char> LimitCharacter, string message) {
+            Waiting = true;
             Console.Write(message);
             StringBuilder builder = new StringBuilder();
 
@@ -47,12 +52,15 @@ namespace VisualSimulatorController {
                 }
             }
             Console.WriteLine();
+            ProcessPrintQueue();
+
             return (T)Convert.ChangeType(builder.ToString(), typeof(T));
         }
         public static T ReadLine<T>(Predicate<char> LimitCharacter, string message, Predicate<T> LimitLine, string errorMessage, bool BeepOnError, bool AllowDefault = false, T Default = default(T)) {
             return ReadLine(LimitCharacter, message, new[] { LimitLine }, new[] { errorMessage }, BeepOnError, AllowDefault, Default);
         }
         public static T ReadLine<T>(Predicate<char> LimitCharacter, string message, Predicate<T>[] LimitLine, string[] errorMessage, bool BeepOnError, bool AllowDefault = false, T Default = default(T)) {
+            Waiting = true;
             Console.Write(message);
             StringBuilder builder = new StringBuilder();
 
@@ -63,6 +71,7 @@ namespace VisualSimulatorController {
                     if(builder.Length == 0) {
                         if (AllowDefault) {
                             Console.WriteLine();
+                            ProcessPrintQueue();
                             return Default;
                         }
                         else
@@ -74,7 +83,7 @@ namespace VisualSimulatorController {
                             builder.Clear();
                             Console.WriteLine();
                             ClearLine(0, 1);
-                            PrintColor(errorMessage[i], ConsoleColor.Red);
+                            PrintColor(errorMessage[i], ConsoleColor.Red, true);
                             if (BeepOnError)
                                 Console.Beep();
                             ClearLine(2);
@@ -83,6 +92,7 @@ namespace VisualSimulatorController {
                         }
                     }
                     ClearLine(-1);
+                    ProcessPrintQueue();
                     return temp;
                 }
                 else if (key.Key == ConsoleKey.Backspace && builder.Length > 0) {
@@ -106,10 +116,30 @@ namespace VisualSimulatorController {
             Console.Write(new string(' ', Console.WindowWidth));
             Console.SetCursorPosition(0, Console.CursorTop - RelativeReturn);
         }
-        public static void PrintColor(string Message, ConsoleColor color) {
+        public static void PrintColor(string Message, ConsoleColor color, bool Force = false) {
+            if (Waiting && !Force) {
+                lock(PrintQueue)
+                    PrintQueue.Enqueue(Tuple.Create(Message, color));
+                return;
+            }
+            else if(Console.CursorLeft != 0 && !Force) {
+                Console.WriteLine();
+                PrintColor(Message, color);
+                return;
+            }
             Console.ForegroundColor = color;
             Console.WriteLine(Message);
             Console.ResetColor();
+        }
+        private static void ProcessPrintQueue() {
+            lock (PrintQueue) {
+                while (PrintQueue.Count > 0) {
+                    Tuple<string, ConsoleColor> action = PrintQueue.Peek();
+                    PrintColor(action.Item1, action.Item2, true);
+                    PrintQueue.Dequeue();
+                }
+            }
+            Waiting = false;
         }
         #endregion
     }

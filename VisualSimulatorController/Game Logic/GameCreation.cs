@@ -34,7 +34,7 @@ namespace VisualSimulatorController.Game_Logic {
 
             return new[] { Size, amounts[0], amounts[1], amounts[2], Reserves };
         }
-        public static Tuple<Color[], string[], string[]> CreatePlayerData() {
+        public static Tuple<Color[], string[], string[], int[]> CreatePlayerData() {
             int Amount = HandleInput.ReadLine<int>((x => char.IsDigit(x)), "How many players will be playing the game (default '4') : ",
                 (x => x > 0 && x < 5), "The amount of players is limited to 1 to 4 players.", true, true, 4);
             HandleInput.PrintColor(string.Format("The amount of players has been set to {0}.", Amount), ConsoleColor.Yellow);
@@ -42,6 +42,7 @@ namespace VisualSimulatorController.Game_Logic {
             Color[] PlayerColors = new Color[Amount];
             string[] PlayerColorNames = new string[Amount];
             string[] PlayerNames = new string[Amount];
+            int[] PlayerChance = new int[Amount];
 
             string[] Defaults = new[] { "Purple", "Blue", "Red", "Orange" };
 
@@ -52,8 +53,10 @@ namespace VisualSimulatorController.Game_Logic {
                 PlayerColorNames[i] = HandleInput.ReadLine<string>((x => char.IsLetter(x)), string.Format("What should the player's colour be (default '{0}') ? : ", Defaults[i]),
                     (c => GlobalMethods.GetColor(c) != null), "An invalid color value has been giving.", false, true, Defaults[i]);
                 PlayerColors[i] = (Color)GlobalMethods.GetColor(PlayerColorNames[i]);
+                PlayerChance[i] = HandleInput.ReadLine<int>(x => char.IsDigit(x), "What is the percentage chance the player answers correctly (default '50') ? : ",
+                (c => c > 0 && c <= 100), "The chance should be between 1% and 100%.", true, true, 50);
             }
-            return Tuple.Create(PlayerColors, PlayerColorNames, PlayerNames);
+            return Tuple.Create(PlayerColors, PlayerColorNames, PlayerNames, PlayerChance);
         }
         public static int[] CreateSimulationData() {
             int Runs = HandleInput.ReadLine<int>((x => char.IsDigit(x)), "How many game should be run in the simulation (default '50.000') : ",
@@ -62,13 +65,11 @@ namespace VisualSimulatorController.Game_Logic {
             int VisualRun = HandleInput.ReadLine<int>((x => char.IsDigit(x)), "How many games should be visualized ? : ",
                 (c => c <= Runs), "There can't be more visual simulations than actual simulations.", true);
             HandleInput.PrintColor(string.Format("The simulator will visualize {0} simulations.", VisualRun), ConsoleColor.Yellow);
-            int Chance = HandleInput.ReadLine<int>(x => char.IsDigit(x), "What is the percentage chance a player answers correctly (default '50') ? : ",
-                (c => c > 0 && c <= 100), "The chance should be between 1% and 100%.", true, true, 50);
-            HandleInput.PrintColor(string.Format("The chance to answer correctly has been set to {0}.", Chance), ConsoleColor.Yellow);
             int TurnTime = HandleInput.ReadLine<int>((x => char.IsDigit(x)), "How long does a turn take in seconds (default '15') ? : ",
                 (c => c > 0), "A turn should take atleast 1 second.", true, true, 15);
             HandleInput.PrintColor(string.Format("The time a turn takes has been set to {0}.", TurnTime), ConsoleColor.Yellow);
-            return new[] { Runs, VisualRun, Chance, TurnTime };
+            int TimeOut = HandleInput.ReadLine<int>((x => char.IsDigit(x)), "After how many turns should a game time-out (default '0') ? : ", (x => true), "", false, true, 0);
+            return new[] { Runs, VisualRun, TurnTime, TimeOut };
         }
 
         #region Data Validation and converters

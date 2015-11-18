@@ -94,7 +94,7 @@ namespace VisualSimulatorController.Game_Logic {
             Coms.UnPause();
         }
         private void BackgroundColor(string[] Parameters) {
-            string BackgroundColor = HandleInput.ReadLine<string>((x => char.IsLetter(x)), "Give the name of your desired background color (default 'BlanchedAlmond') : ", (c => GlobalMethods.GetColor(c) != null), "The given color does not exist.", false, true, "BlanchedAlmond");
+            string BackgroundColor = HandleInput.ReadLine<string>((x => char.IsLetter(x)), "What should the background color be (default 'BlanchedAlmond') ? : ", (c => GlobalMethods.GetColor(c) != null), "The given color does not exist.", false, true, "BlanchedAlmond");
             Coms.ChangeBackground((Color)GlobalMethods.GetColor(BackgroundColor));
         }
         #endregion
