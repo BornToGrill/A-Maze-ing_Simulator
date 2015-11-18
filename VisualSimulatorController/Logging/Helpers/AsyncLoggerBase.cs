@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Threading;
 using VisualSimulatorController.Game_Logic.Helpers;
 
@@ -20,6 +21,7 @@ namespace VisualSimulatorController.Logging.Helpers {
             LogThread = new Thread(new ThreadStart(ProcessQueue)) {
                 IsBackground = true
             };
+            LogThread.CurrentCulture = CultureInfo.InvariantCulture;
             LogThread.Start();
         }
 
