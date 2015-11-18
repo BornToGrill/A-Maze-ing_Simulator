@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using VisualSimulatorController.Logging.Helpers;
 using VisualSimulatorController.Game_Logic.Helpers;
+using System.Globalization;
 
 namespace VisualSimulatorController.Logging {
     internal class CsvLogger : AsyncLoggerBase {
@@ -41,13 +42,12 @@ namespace VisualSimulatorController.Logging {
 
         #region AsnyLoggerBase implementation members
         internal override void AsyncLogData(GameData Data, string WinnerName) {
-
+            Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
             if (Data == null) {
                 GameDataWriter.WriteLine("N/A;N/A;N/A;N/A;N/A;N/A;N/A;N/A");
                 PlayerDataWriter.WriteLine(GameNumber.ToString());
             }
             else {
-
                 // Write game results to result csv
                 float AnswerPercentage = (Data.RightAnswers.Sum() / (float)(Data.WrongAnswers.Sum() + Data.RightAnswers.Sum())) * 100;
                 string Log = string.Format("{0};{1};{2};{3};{4};{5};{6};{7}", GameNumber, Data.Turns, Data.RowsShifted, Data.BlocksRotated, Data.PawnsMoved, Data.Turns * TurnTime, AnswerPercentage, WinnerName);
