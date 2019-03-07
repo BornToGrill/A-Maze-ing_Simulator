@@ -1,7 +1,7 @@
 ﻿using System;
 
-namespace VisualSimulator {
-#if WINDOWS || LINUX
+namespace VisualSimulator
+{
     /// <summary>
     /// The main class.
     /// </summary>
@@ -11,11 +11,10 @@ namespace VisualSimulator {
         /// The main entry point for the application.
         /// </summary>
         [STAThread]
-        public static void Main()
+        static void Main()
         {
-            //using (var mainProcess = new Game1(null))
-            //    mainProcess.Run();
+            //using (var game = new Game1())
+            //    game.Run();
         }
     }
-#endif
 }

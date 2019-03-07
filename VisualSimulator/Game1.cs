@@ -46,9 +46,12 @@ namespace VisualSimulator {
         private bool GameIsRunning;
         private static int _playerIndex;
 
-        public static int CurrentPlayerIndex {
+        public static int CurrentPlayerIndex
+        {
             get { return _playerIndex; }
-            set {if (CurrentPlayers == null)
+            set
+            {
+                if (CurrentPlayers == null)
                     _playerIndex = value;
                 else if (value >= CurrentPlayers.Length)
                     _playerIndex = 0;
@@ -56,7 +59,7 @@ namespace VisualSimulator {
                     _playerIndex = value;
             }
         }
-        
+
         // Current game log data
         SpriteFont Font;
         internal static int PawnsMoved;
@@ -136,13 +139,13 @@ namespace VisualSimulator {
         /// </summary>
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Update(GameTime gameTime) {
-            if (_pause) 
+            if (_pause)
                 return;
-            
+
             if (GraphicsDevice.Viewport.Width != graphics.PreferredBackBufferWidth || GraphicsDevice.Viewport.Height != graphics.PreferredBackBufferHeight)
                 graphics.ApplyChanges();
             if (!GameIsRunning && !Animations.IsAnimating) {
-                if(CurrentBoard != null) {
+                if (CurrentBoard != null) {
                     TurnCountHistory.Dequeue();
                     MoveHistory.Dequeue();
                     BoardHistory.Dequeue();
@@ -163,14 +166,14 @@ namespace VisualSimulator {
                     CurrentPlayers = GetPlayers();
                     float Offset = (float)Origin.X * Scale;
                     Animations.Animate(MoveHistory.Peek()[0], CurrentBoard, CurrentReserves, CurrentPlayers, Scale, Offset);
-                    
+
                 }
                 else if (BoardHistory != null) {
                     this.Exit();
                 }
             }
-            else if(GameIsRunning && !Animations.IsAnimating) {
-                if(CurrentBoard != null) {
+            else if (GameIsRunning && !Animations.IsAnimating) {
+                if (CurrentBoard != null) {
                     var CurrentMoves = MoveHistory.Peek();
                     if (CurrentMoves.Count > 0)
                         CurrentMoves.RemoveAt(0);
@@ -222,7 +225,7 @@ namespace VisualSimulator {
                                 Rotation += Animations.Rotation;
                             }
                     Rotation *= (float)(Math.PI / 2);
-                    if(Type == BlockType.Chest)
+                    if (Type == BlockType.Chest)
                         spriteBatch.Draw(CastleBase, Position, Source, Color.White, 0f, Origin, Scale, SpriteEffects.None, 0);
                     else
                         spriteBatch.Draw(BaseTexture, Position, Source, Color.White, 0f, Origin, Scale, SpriteEffects.None, 0);
@@ -256,7 +259,7 @@ namespace VisualSimulator {
                             else if (!Animations.AnimatedPlayers.Contains(x))
                                 samePosition++;
                         }
-                        
+
 
 
                 switch (samePosition) {
@@ -274,7 +277,7 @@ namespace VisualSimulator {
                         break;
                 }
             }
-            Animations.Draw(spriteBatch,BaseTexture, Textures, Offset, Source, Origin);
+            Animations.Draw(spriteBatch, BaseTexture, Textures, Offset, Source, Origin);
 
             // Game information string formatting
             string length = string.Format("Total turns : {0}", TurnCountHistory.Peek());
@@ -325,7 +328,7 @@ namespace VisualSimulator {
             this.MoveHistory = (Queue<List<Tuple<string, string, string>>>)Moves;
             this.PlayerHistory = Players;
             this.PlayerNameHistory = PlayerNames;
-            UpdatePlayerTextures();            
+            UpdatePlayerTextures();
         }
         public void UpdateScale(float Scale) {
             this.Scale = Scale;
@@ -353,7 +356,7 @@ namespace VisualSimulator {
 
         #region Player Creation
         private void UpdatePlayerTextures() {
-            for(int i = 0; i < PlayerHistory.Length; i++) {
+            for (int i = 0; i < PlayerHistory.Length; i++) {
                 Color col = ConvertColor(PlayerHistory[i]);
                 if (!PlayerTextures.ContainsKey(col))
                     PlayerTextures.Add(col, CreateCircleTexture(col));
@@ -361,7 +364,7 @@ namespace VisualSimulator {
         }
         private Player[] GetPlayers() {
             var toReturn = new Player[PlayerHistory.Length];
-            for(int i = 0; i < toReturn.Length; i++) {
+            for (int i = 0; i < toReturn.Length; i++) {
                 Vector2 Position;
                 switch (i) {
                     case 0:

@@ -96,7 +96,7 @@
       <Name>SimulatorDelegate</Name>
     </ProjectReference>
     <ProjectReference Include="..\VisualSimulator\VisualSimulator.csproj">
-      <Project>{0c0544da-8148-42a5-a5a7-0423fd9324fb}</Project>
+      <Project>{6ee905dd-4dce-4bd7-bb05-6021a5e40966}</Project>
       <Name>VisualSimulator</Name>
     </ProjectReference>
   </ItemGroup>
