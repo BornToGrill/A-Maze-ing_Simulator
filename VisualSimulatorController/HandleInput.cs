@@ -7,7 +7,7 @@ namespace VisualSimulatorController {
     public static class HandleInput {
 
         private static bool Waiting;
-        private static Queue<Tuple<string, ConsoleColor>> PrintQueue = new Queue<Tuple<string, ConsoleColor>>();
+        private static readonly Queue<Tuple<string, ConsoleColor>> PrintQueue = new Queue<Tuple<string, ConsoleColor>>();
 
         #region Single key Input
         public static bool ExpectKey(ConsoleKey key, string message, int timeout = -1) {
@@ -111,10 +111,23 @@ namespace VisualSimulatorController {
         #endregion
 
         #region Console Manipulation
+
+        public static void SetCursorPosition(int left, int top) {
+            left = Clamp(left, 0, Console.BufferWidth - 1);
+            top = Clamp(top, 0, Console.BufferHeight - 1);
+            Console.SetCursorPosition(left, top);
+        }
+
+        private static int Clamp(int x, int min, int max) {
+            if (x < min) return min;
+            if (x > max) return max;
+            return x;
+        }
+
         private static void ClearLine(int RelativePostion = 0, int RelativeReturn = 1) {
-            Console.SetCursorPosition(0, Console.CursorTop - RelativePostion);
+            SetCursorPosition(0, Console.CursorTop - RelativePostion);
             Console.Write(new string(' ', Console.WindowWidth));
-            Console.SetCursorPosition(0, Console.CursorTop - RelativeReturn);
+            SetCursorPosition(0, Console.CursorTop - RelativeReturn);
         }
         public static void PrintColor(string Message, ConsoleColor color, bool Force = false) {
             if (Waiting && !Force) {

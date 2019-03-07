@@ -1,15 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.23107.0
+# Visual Studio 15
+VisualStudioVersion = 15.0.26730.12
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisualSimulator", "VisualSimulator\VisualSimulator.csproj", "{0C0544DA-8148-42A5-A5A7-0423FD9324FB}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisualSimulatorController", "VisualSimulatorController\VisualSimulatorController.csproj", "{EE2A6CB4-124E-4AB8-9411-973BC8F223A2}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimulatorDelegate", "SimulatorDelegate\SimulatorDelegate.csproj", "{555A16CB-2F7E-4222-9748-B777271B7754}"
-EndProject
-Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "SimulatorInstaller", "SimulatorInstaller\SimulatorInstaller.vdproj", "{E53AE62E-1A80-4FE3-9692-A6A154A4A837}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -43,12 +41,11 @@ Global
 		{555A16CB-2F7E-4222-9748-B777271B7754}.Release|Any CPU.Build.0 = Release|Any CPU
 		{555A16CB-2F7E-4222-9748-B777271B7754}.Release|x86.ActiveCfg = Release|Any CPU
 		{555A16CB-2F7E-4222-9748-B777271B7754}.Release|x86.Build.0 = Release|Any CPU
-		{E53AE62E-1A80-4FE3-9692-A6A154A4A837}.Debug|Any CPU.ActiveCfg = Debug
-		{E53AE62E-1A80-4FE3-9692-A6A154A4A837}.Debug|x86.ActiveCfg = Debug
-		{E53AE62E-1A80-4FE3-9692-A6A154A4A837}.Release|Any CPU.ActiveCfg = Release
-		{E53AE62E-1A80-4FE3-9692-A6A154A4A837}.Release|x86.ActiveCfg = Release
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {020D03EB-6B46-49D8-95DF-1281E6D78768}
 	EndGlobalSection
 EndGlobal

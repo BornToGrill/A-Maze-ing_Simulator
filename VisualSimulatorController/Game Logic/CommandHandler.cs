@@ -37,11 +37,13 @@ namespace VisualSimulatorController.Game_Logic {
                         if (!string.IsNullOrWhiteSpace(str) && Coms.Game != null) {
                             Action<string[]> command;
                             string[] Parameters = str.Split();
-                            if (AvailableCommands.TryGetValue(str, out command) || CommandSynonyms.TryGetValue(str, out command))
+                            if (AvailableCommands.TryGetValue(str, out command) ||
+                                CommandSynonyms.TryGetValue(str, out command))
                                 command.Invoke(Parameters);
                         }
-                        else
-                            Console.SetCursorPosition(0, Console.CursorTop - 1);
+                        else {
+                            HandleInput.SetCursorPosition(0, Console.CursorTop - 1);
+                        }
                     }
                 }));
             thrd.CurrentCulture = CultureInfo.InvariantCulture;

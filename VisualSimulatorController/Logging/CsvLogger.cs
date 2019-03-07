@@ -22,10 +22,11 @@ namespace VisualSimulatorController.Logging {
         private StreamWriter PlayerDataWriter;
 
 
-        public CsvLogger(string Path) {
-            this.CsvPath = "Game Logs\\" + Path + "\\CSV-Log.csv";
-            this.CsvPlayersPath = "Game Logs\\" + Path + "\\CSV-Players-Log.csv";
-            this.ExcelPath = "Game Logs\\" + Path + "\\Excel-Log.xlsx";
+        public CsvLogger(string path) {
+            const string logPath = "Game Logs";
+            this.CsvPath = Path.Combine(logPath, path, "CSV-Log.csv");
+            this.CsvPlayersPath = Path.Combine(logPath, path, "CSV-Players-Log.csv");
+            this.ExcelPath = Path.Combine(logPath, path, "Excel-Log.csv");
         }
 
         private string IndexToCornerString(int index) {
@@ -39,7 +40,7 @@ namespace VisualSimulatorController.Logging {
             }
         }
 
-        #region AsnyLoggerBase implementation members
+        #region AsyncLoggerBase implementation members
         internal override void AsyncLogData(GameData Data, string WinnerName) {
             if (Data == null) {
                 GameDataWriter.WriteLine("N/A;N/A;N/A;N/A;N/A;N/A;N/A;N/A");
@@ -79,8 +80,9 @@ namespace VisualSimulatorController.Logging {
             this.ExpectedGames = Runs;
             this.TurnTime = TurnTime;
             this.DoneEvent = Done;
-            if (!Directory.Exists(Path.GetDirectoryName(CsvPath)))
-                Directory.CreateDirectory(Path.GetDirectoryName(CsvPath));
+            var directoryName = Path.GetDirectoryName(CsvPath);
+            if (!Directory.Exists(directoryName))
+                Directory.CreateDirectory(directoryName);
             try {
                 using (StreamWriter writer = new StreamWriter(CsvPath)) {
                     // Setting file to hidden to avoid any access violations.
